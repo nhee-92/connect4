@@ -29,13 +29,19 @@ class Controller:
 
         if type(player_count) is int:
             self.turn = int(random.uniform(0, player_count +1))
+            #########################
+            ### Player vs. Player ###
             if game_mode == 1:
                 for idx in range(player_count):
                     self.players.append(self.register_player(idx))
+            ###########################
+            ### Player vs. Computer ###
             if game_mode == 2:
                 for idx in range(player_count):
                     self.players.append(self.register_player(idx))
                 self.players.append(self.register_ai(idx +1))
+            #############################
+            ### Computer vs. Computer ###
             if game_mode == 3:
                 for idx in range(player_count):
                     self.players.append(self.register_ai(idx))
@@ -55,6 +61,7 @@ class Controller:
         for idx in range(players_length):
             self.players[idx].active = False
 
+        #TODO Schleife entfernen
         for idx in range(players_length):
             if idx == self.turn:
                 self.turn += 1
@@ -90,6 +97,7 @@ class Controller:
             
             if type(player_input) is int: 
                 self.handle_player_move(self.players[self.current_player], player_input -1)
+                # TODO modify winning move to check for draw
                 if self.game_board.winning_move(self.current_player +1):
                     self.view.winning_player(self.players[self.current_player])
                     ########################
@@ -97,14 +105,14 @@ class Controller:
                     self.initialize_new_game()
 
     #################################
-    ### This Method runs the game ###
+    ### This method runs the game ###
     def start_game(self):
         self.view.start_screen()
         game_mode = self.view.init_game_mode()
         reg_ex = re.search('[1-3]', game_mode)
 
-        #########################
-        ### Player vs. Player ###
+        ###########################
+        ### Run a specific game ###
         if reg_ex and len(game_mode) == 1:
             self.game_is_running(int(game_mode))
 
