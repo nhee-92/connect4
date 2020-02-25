@@ -90,7 +90,7 @@ class Controller:
 
         while self.running_game:
             self.get_active_player()
-            if self.players[self.current_player].type == 'playable':
+            if self.players[self.current_player].type == 'human':
                 player_input = self.view.player_input(self.players[self.current_player].name)
             else:
                 player_input = int(random.uniform(1, self.COLUMN_COUNT +1))
