@@ -47,7 +47,7 @@ class View:
         print('')
 
     def init_game_mode(self):
-        game_mode = int(input('Enter Option: '))
+        game_mode = input('Enter Option: ')
         return game_mode
 
     def player_input(self, name):

@@ -1,5 +1,6 @@
 import math
 import random
+import re
 import sys, os
 
 from Board import Board
@@ -100,25 +101,16 @@ class Controller:
     def start_game(self):
         self.view.start_screen()
         game_mode = self.view.init_game_mode()
+        reg_ex = re.search('[1-3]', game_mode)
 
         #########################
         ### Player vs. Player ###
-        if game_mode == 1:
-            self.game_is_running(game_mode)
-        
-        ###########################
-        ### Player vs. Computer ###
-        if game_mode == 2:
-            self.game_is_running(game_mode)
-
-        #############################
-        ### Computer vs. Computer ###
-        if game_mode == 3:
-            self.game_is_running(game_mode)
+        if reg_ex and len(game_mode) == 1:
+            self.game_is_running(int(game_mode))
 
         #################
         ### Exit Game ###
-        if game_mode == 4:
+        if int(game_mode) == 4:
             sys.exit()
 
         else:
