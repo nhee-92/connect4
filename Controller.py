@@ -1,7 +1,8 @@
 import math
 import random
 import re
-import sys, os
+import sys
+import time
 
 from Board import Board
 from Player import Player
@@ -34,17 +35,20 @@ class Controller:
             if game_mode == 1:
                 for idx in range(player_count):
                     self.players.append(self.register_player(idx))
+                self.view.clear_console()
             ###########################
             ### Player vs. Computer ###
             if game_mode == 2:
                 for idx in range(player_count):
                     self.players.append(self.register_player(idx))
                 self.players.append(self.register_ai(idx +1))
+                self.view.clear_console()
             #############################
             ### Computer vs. Computer ###
             if game_mode == 3:
                 for idx in range(player_count):
                     self.players.append(self.register_ai(idx))
+                self.view.clear_console()
     
     def get_active_player(self):
         if self.current_player == None:
@@ -71,6 +75,9 @@ class Controller:
     def handle_player_move(self, player, column):
         if self.game_board.is_position_free_in_column(column):
             self.game_board.add_chip(column, player.chip_id +1)
+            self.view.clear_console()
+            self.view.connect_four()
+            self.view.enter_help()
             self.view.show_board(self.game_board.get_board())
             return True
         else:
@@ -86,6 +93,8 @@ class Controller:
 
     def game_is_running(self, game_mode):
         self.initialize_players(game_mode)
+        self.view.connect_four()
+        self.view.enter_help()
         self.view.show_board(self.game_board.get_board())
 
         while self.running_game:
@@ -100,6 +109,7 @@ class Controller:
                 # TODO modify winning move to check for draw
                 if self.game_board.winning_move(self.current_player +1):
                     self.view.winning_player(self.players[self.current_player])
+                    time.sleep(3)
                     ########################
                     ### start a new game ###
                     self.initialize_new_game()
@@ -107,6 +117,8 @@ class Controller:
     #################################
     ### This method runs the game ###
     def start_game(self):
+        self.view.clear_console()
+        self.view.connect_four()
         self.view.start_screen()
         game_mode = self.view.init_game_mode()
         reg_ex = re.search('[1-3]', game_mode)
@@ -116,9 +128,28 @@ class Controller:
         if reg_ex and len(game_mode) == 1:
             self.game_is_running(int(game_mode))
 
+        ####################
+        ### Game Options ###
+        if int(game_mode) == 4:
+            self.view.clear_console()
+            self.view.connect_four()
+            self.view.options_screen()
+
+            option_input = int(input())
+
+            if option_input == 1:
+                self.view.clear_console()
+                self.view.connect_four()
+                self.view.option_change_gameboard()
+                self.ROW_COUNT = int(input('Rows: '))
+                self.COLUMN_COUNT = int(input('Columns: '))
+            
+            if option_input == 2:
+                self.start_game()
+
         #################
         ### Exit Game ###
-        if int(game_mode) == 4:
+        if int(game_mode) == 5:
             sys.exit()
 
         else:
