@@ -10,9 +10,10 @@ from Ai import Ai
 from View import View
 
 class Controller:
-    ROW_COUNT = 6
-    COLUMN_COUNT = 7
-    game_board = Board(ROW_COUNT, COLUMN_COUNT)
+    DEFAULT_ROW_COUNT = 6
+    DEFAULT_COLUMN_COUNT = 7
+    row_count = DEFAULT_ROW_COUNT
+    column_count = DEFAULT_COLUMN_COUNT
     view = View()
     players = []
     current_player = None
@@ -84,17 +85,18 @@ class Controller:
             self.view.show_message('invalid move')
             return False
 
-    def initialize_new_game(self):
-        self.game_board = Board(self.ROW_COUNT, self.COLUMN_COUNT)
+    def reset_game(self):
+        self.game_board = Board(self.row_count, self.column_count)
         self.players = []
         self.current_player = None
         self.turn = 0
-        self.start_game()
+        self.start_application()
 
-    def game_is_running(self, game_mode):
+    def start_game(self, game_mode):
         self.initialize_players(game_mode)
         self.view.connect_four()
         self.view.enter_help()
+        self.game_board = Board(self.row_count, self.column_count)
         self.view.show_board(self.game_board.get_board())
 
         while self.running_game:
@@ -102,7 +104,7 @@ class Controller:
             if self.players[self.current_player].type == 'human':
                 player_input = self.view.player_input(self.players[self.current_player].name)
             else:
-                player_input = int(random.uniform(1, self.COLUMN_COUNT +1))
+                player_input = int(random.uniform(1, self.column_count +1))
             
             if type(player_input) is int: 
                 self.handle_player_move(self.players[self.current_player], player_input -1)
@@ -110,13 +112,13 @@ class Controller:
                 if self.game_board.winning_move(self.current_player +1):
                     self.view.winning_player(self.players[self.current_player])
                     time.sleep(3)
-                    ########################
-                    ### start a new game ###
-                    self.initialize_new_game()
+                    ##########################
+                    ### reset current game ###
+                    self.reset_game()
 
     #################################
     ### This method runs the game ###
-    def start_game(self):
+    def start_application(self):
         self.view.clear_console()
         self.view.connect_four()
         self.view.start_screen()
@@ -126,7 +128,7 @@ class Controller:
         ###########################
         ### Run a specific game ###
         if reg_ex and len(game_mode) == 1:
-            self.game_is_running(int(game_mode))
+            self.start_game(int(game_mode))
 
         ####################
         ### Game Options ###
@@ -140,12 +142,12 @@ class Controller:
             if option_input == 1:
                 self.view.clear_console()
                 self.view.connect_four()
-                self.view.option_change_gameboard()
-                self.ROW_COUNT = int(input('Rows: '))
-                self.COLUMN_COUNT = int(input('Columns: '))
+                self.view.option_change_gameboard(self.DEFAULT_ROW_COUNT, self.DEFAULT_COLUMN_COUNT)
+                self.row_count = int(input('Rows: '))
+                self.column_count = int(input('Columns: '))
             
             if option_input == 2:
-                self.start_game()
+                self.start_application()
 
         #################
         ### Exit Game ###
@@ -154,4 +156,4 @@ class Controller:
 
         else:
             print('wrong input')
-            self.start_game()
+            self.start_application()

@@ -1,3 +1,3 @@
 from Controller import Controller
 
-Controller().start_game()
+Controller().start_application()

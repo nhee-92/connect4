@@ -45,14 +45,14 @@ class View:
         print((f'{Colors.FAIL}         ##################################################################################{Colors.ENDC}').center(self.terminal_width))
         print('')
 
-    def option_change_gameboard(self):
+    def option_change_gameboard(self, rows, columns):
         print('')
         print((f'{Colors.FAIL}         ##################################################################################{Colors.ENDC}').center(self.terminal_width))
         print((f'          {Colors.WARNING}Enter row and column size{Colors.ENDC}').center(self.terminal_width))
         print('')
         print((f'{Colors.WARNING}Default:{Colors.ENDC}       ').center(self.terminal_width))
-        print((f'{Colors.WARNING}Rows: 6{Colors.ENDC}        ').center(self.terminal_width))
-        print((f'{Colors.WARNING}Columns: 7{Colors.ENDC}     ').center(self.terminal_width))
+        print((f'{Colors.WARNING}Rows: {rows}{Colors.ENDC}        ').center(self.terminal_width))
+        print((f'{Colors.WARNING}Columns: {columns}{Colors.ENDC}     ').center(self.terminal_width))
         print((f'{Colors.FAIL}         ##################################################################################{Colors.ENDC}').center(self.terminal_width))
         print('')
 
