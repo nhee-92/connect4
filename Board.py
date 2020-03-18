@@ -24,6 +24,13 @@ class Board:
         return self.get_next_open_row(column) >= 0
 
     def winning_move(self, chip):
+        ##################
+        ### check draw ###
+        for column in range(self.columns):
+            for row in range(self.rows):
+                if self.board[row][column] != 0:
+                    return False
+
         ############################
         ### check horizontal win ###
         for column in range(self.columns -3):

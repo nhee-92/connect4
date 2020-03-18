@@ -115,6 +115,8 @@ class Controller:
                     ##########################
                     ### reset current game ###
                     self.reset_game()
+                else:
+                    self.view.show_draw()
 
     #################################
     ### This method runs the game ###
