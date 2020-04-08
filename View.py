@@ -103,9 +103,6 @@ class View:
         else:
             self.show_message('invalid input')
 
-    def show_draw(self):
-        print('DRAW')
-
     def show_board(self, board):
         print('')
         print(board)

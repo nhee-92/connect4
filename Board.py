@@ -13,23 +13,26 @@ class Board:
     def get_next_open_row(self, column):
         for row in range(self.rows):
             if self.board[row][column] != 0:
+
                 return row - 1
         return self.rows - 1
-
-    def add_chip(self, column, chip):
-        if self.is_position_free_in_column(column):
-            self.board[self.get_next_open_row(column)][column] = chip
 
     def is_position_free_in_column(self, column):
         return self.get_next_open_row(column) >= 0
 
+    def get_valid_locations(self, column_length):
+        valid_locations = []
+
+        for column in range(column_length):
+            if self.is_position_free_in_column(column):
+                valid_locations.append(column)
+
+        return valid_locations
+                
+
     def winning_move(self, chip):
         ##################
         ### check draw ###
-        for column in range(self.columns):
-            for row in range(self.rows):
-                if self.board[row][column] != 0:
-                    return False
 
         ############################
         ### check horizontal win ###
