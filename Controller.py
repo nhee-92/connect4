@@ -4,6 +4,7 @@ import re
 import sys
 import time
 import copy
+import csv
 
 from Board import Board
 from Player import Player
@@ -18,7 +19,6 @@ class Controller:
     view = View()
     players = []
     current_player = None
-    opponent_chip = None
     running_game = True
     turn = 0
 
@@ -98,20 +98,21 @@ class Controller:
         score = 0
 
         if window.count(chip) == 4:
-            score += 100
+            score += 1000
         elif window.count(chip) == 3 and window.count(0) == 1:
-            score += 10
+            score += 200
         elif window.count(chip) == 2 and window.count(0) == 2:
-            score += 5
+            score += 50
 
-        if self.opponent_chip != None:
-            if window.count(self.opponent_chip) == 3 and window.count(0) == 1:
-                score -= 80
+        for player in range(len(self.players)):
+            if self.players[player].type  != 'machine':
+                if window.count(self.players[player].chip_id +1) == 3 and window.count(0) == 1:
+                    score -= 800
 
         return score
 
     def score_position(self, game_board, chip):
-        score = 0
+        score = -10000
 
         ####################
         ### Score Center ###
@@ -153,7 +154,7 @@ class Controller:
 
     def get_best_move(self, game_board, chip):
         valid_locations = self.game_board.get_valid_locations(self.column_count)
-        best_score = -10000
+        best_score = -100000
         best_column = random.choice(valid_locations)
         
         for column in valid_locations:
@@ -166,8 +167,71 @@ class Controller:
                 best_column = column +1
 
         return best_column
+
+    ###############
+    ### MiniMax ###
+    def get_opponents(self):
+        opponent_arr = []
+
+        for opponent in range(len(self.players)):
+            if self.players[opponent].type == 'human':
+                opponent_arr.append(self.players[opponent])
+        return opponent_arr
+
+    def is_terminal_node(self, player):
+        return self.game_board.winning_move(self.players[self.current_player].chip_id +1) or self.game_board.winning_move(self.players[player].chip_id +1) or len(self.game_board.get_valid_locations(self.column_count)) == 0
+
+    def minimax(self, game_board, depth, player):
+        valid_locations = game_board.get_valid_locations(self.column_count)
+        is_terminal = self.is_terminal_node(player)
+
+        if is_terminal:
+            if game_board.winning_move(self.players[self.current_player].chip_id +1):
+                return None, 100000000000
+            elif game_board.winning_move(self.game_board.winning_move(self.get_opponents()[opp].chip_id +1 for opp in range(len(self.get_opponents())))):
+                return None, -100000000000
+            else:
+                return None, 0
+        if depth == 0:
+            return None, self.score_position(game_board, self.players[self.current_player].chip_id +1)
+        
+        value = 0
+        best_column = random.choice(valid_locations)
+
+        if self.players[self.current_player].chip_id == self.players[player].chip_id:
+            value = -math.inf
+        else:
+            value = math.inf
+
+        for column in valid_locations:
+            tmp_game_board = copy.deepcopy(game_board)
+            self.add_chip(column, tmp_game_board, self.players[player].chip_id +1)
+            new_score = self.minimax(tmp_game_board, depth -1, self.get_next_player(player))[1]
+            if self.players[self.current_player].chip_id != self.players[player].chip_id:
+                if new_score < value:
+                    value = new_score
+                    best_column = column
+            else:
+                if new_score > value:
+                    value = new_score
+                    best_column = column
+        self.writeResultsToFile(best_column, value, self.players[player].chip_id +1)
+        return best_column, value
     ### End KI Move ###
     ###################
+
+    def get_next_player(self, player):
+        next_player = self.players[0]
+        if len(self.players) > player +1:
+            next_player = self.players[player +1]
+        return next_player.chip_id +1
+
+    def writeResultsToFile(self, column, score, player_id):
+        with open('log.csv', 'a', newline='') as f:
+            writer = csv.writer(f, delimiter=";")
+            content = [player_id, column, score]
+            writer.writerow(content)
+
 
     def reset_game(self):
         self.game_board = Board(self.row_count, self.column_count)
@@ -186,12 +250,12 @@ class Controller:
         while self.running_game:
             self.get_active_player()
             if self.players[self.current_player].type == 'human':
-                self.opponent_chip = self.players[self.current_player].chip_id +1
                 player_input = self.view.player_input(self.players[self.current_player].name)
             elif self.players[self.current_player].type == 'machine':
-                player_input = self.get_best_move(self.game_board, self.players[self.current_player].chip_id)
-            
-            if type(player_input) is int:
+                # player_input = self.get_best_move(self.game_board, self.players[self.current_player].chip_id)
+                player_input = self.minimax(self.game_board, 4, self.current_player)[0]
+
+            if type(player_input) is int and self.game_board.is_position_free_in_column(player_input -1):
                 self.handle_player_move(self.players[self.current_player], player_input -1)
                 if self.game_board.winning_move(self.current_player +1):
                     self.view.winning_player(self.players[self.current_player])
