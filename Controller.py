@@ -37,27 +37,27 @@ class Controller:
             ### Player vs. Player ###
             if game_mode == 1:
                 for idx in range(player_count):
-                    self.players.append(self.register_player(idx))
+                    self.players.append(self.register_player(idx +1))
                 self.view.clear_console()
             ###########################
             ### Player vs. Computer ###
             if game_mode == 2:
                 for idx in range(player_count):
-                    self.players.append(self.register_player(idx))
-                self.players.append(self.register_ai(idx +1))
+                    self.players.append(self.register_player(idx +1))
+                self.players.append(self.register_ai(idx +2))
                 self.view.clear_console()
             #############################
             ### Computer vs. Computer ###
             if game_mode == 3:
                 for idx in range(player_count):
-                    self.players.append(self.register_ai(idx))
+                    self.players.append(self.register_ai(idx +1))
                 self.view.clear_console()
     
     def get_active_player(self):
         if self.current_player == None:
-            self.current_player = self.players[self.turn-1].chip_id
+            self.current_player = self.players[self.turn-1].chip_id -1
         else:
-            self.current_player = self.change_active_player().chip_id
+            self.current_player = self.change_active_player().chip_id -1
 
     def change_active_player(self):
         players_length = len(self.players)
@@ -77,7 +77,7 @@ class Controller:
 
     def handle_player_move(self, player, column):
         if self.game_board.is_position_free_in_column(column):
-            self.add_chip(column, self.game_board, player.chip_id +1)
+            self.add_chip(column, self.game_board, player.chip_id)
             self.view.clear_console()
             self.view.connect_four()
             self.view.enter_help()
@@ -106,7 +106,7 @@ class Controller:
 
         for player in range(len(self.players)):
             if self.players[player].type  != 'machine':
-                if window.count(self.players[player].chip_id +1) == 3 and window.count(0) == 1:
+                if window.count(self.players[player].chip_id) == 3 and window.count(0) == 1:
                     score -= 800
 
         return score
@@ -159,8 +159,8 @@ class Controller:
         
         for column in valid_locations:
             tmp_game_board = copy.deepcopy(self.game_board)
-            self.add_chip(column, tmp_game_board, chip +1)
-            score = self.score_position(tmp_game_board, chip +1)
+            self.add_chip(column, tmp_game_board, chip)
+            score = self.score_position(tmp_game_board, chip)
 
             if score > best_score:
                 best_score = score
@@ -179,21 +179,21 @@ class Controller:
         return opponent_arr
 
     def is_terminal_node(self, player):
-        return self.game_board.winning_move(self.players[self.current_player].chip_id +1) or self.game_board.winning_move(self.players[player].chip_id +1) or len(self.game_board.get_valid_locations(self.column_count)) == 0
+        return self.game_board.winning_move(self.players[self.current_player].chip_id) or self.game_board.winning_move(self.players[player].chip_id) or len(self.game_board.get_valid_locations(self.column_count)) == 0
 
     def minimax(self, game_board, depth, player):
         valid_locations = game_board.get_valid_locations(self.column_count)
         is_terminal = self.is_terminal_node(player)
 
         if is_terminal:
-            if game_board.winning_move(self.players[self.current_player].chip_id +1):
+            if game_board.winning_move(self.players[self.current_player].chip_id):
                 return None, 100000000000
             elif game_board.winning_move(self.game_board.winning_move(self.get_opponents()[opp].chip_id +1 for opp in range(len(self.get_opponents())))):
                 return None, -100000000000
             else:
                 return None, 0
         if depth == 0:
-            return None, self.score_position(game_board, self.players[self.current_player].chip_id +1)
+            return None, self.score_position(game_board, self.players[self.current_player].chip_id)
         
         value = 0
         best_column = random.choice(valid_locations)
@@ -205,26 +205,26 @@ class Controller:
 
         for column in valid_locations:
             tmp_game_board = copy.deepcopy(game_board)
-            self.add_chip(column, tmp_game_board, self.players[player].chip_id +1)
+            self.add_chip(column, tmp_game_board, self.players[player].chip_id)
             new_score = self.minimax(tmp_game_board, depth -1, self.get_next_player(player))[1]
             if self.players[self.current_player].chip_id != self.players[player].chip_id:
                 if new_score < value:
                     value = new_score
-                    best_column = column
+                    best_column = column +1
             else:
                 if new_score > value:
                     value = new_score
-                    best_column = column
-        self.writeResultsToFile(best_column, value, self.players[player].chip_id +1)
+                    best_column = column +1
+        self.writeResultsToFile(best_column, value, self.players[player].chip_id)
         return best_column, value
     ### End KI Move ###
     ###################
 
-    def get_next_player(self, player):
+    def get_next_player(self, player_index):
         next_player = self.players[0]
-        if len(self.players) > player +1:
-            next_player = self.players[player +1]
-        return next_player.chip_id +1
+        if len(self.players) > player_index +1:
+            next_player = self.players[player_index +1]
+        return next_player.chip_id -1
 
     def writeResultsToFile(self, column, score, player_id):
         with open('log.csv', 'a', newline='') as f:
@@ -253,7 +253,7 @@ class Controller:
                 player_input = self.view.player_input(self.players[self.current_player].name)
             elif self.players[self.current_player].type == 'machine':
                 # player_input = self.get_best_move(self.game_board, self.players[self.current_player].chip_id)
-                player_input = self.minimax(self.game_board, 4, self.current_player)[0]
+                player_input = self.minimax(self.game_board, 5, self.current_player)[0]
 
             if type(player_input) is int and self.game_board.is_position_free_in_column(player_input -1):
                 self.handle_player_move(self.players[self.current_player], player_input -1)
