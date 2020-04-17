@@ -31,9 +31,6 @@ class Board:
                 
 
     def winning_move(self, chip):
-        ##################
-        ### check draw ###
-
         ############################
         ### check horizontal win ###
         for column in range(self.columns -3):
