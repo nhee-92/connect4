@@ -103,9 +103,27 @@ class View:
         else:
             self.show_message('invalid input')
 
-    def show_board(self, board):
+    def show_board(self, columns, rows, board, players):
+        visual_game_board = ''
+
+        for column in range(columns):
+            for row in range(rows):
+                if board.board[row][column] == 0:
+                    visual_game_board += '[ ]'
+                elif board.board[row][column] == 1:
+                    visual_game_board += '[X]'
+                elif board.board[row][column] == 2:
+                    visual_game_board += '[O]'
+
         print('')
-        print(board)
+        print((visual_game_board[0:3] + visual_game_board[18:21] + visual_game_board[36:39] + visual_game_board[54:57] + visual_game_board[72:75] + visual_game_board[90:93] + visual_game_board[108:111]).center(self.terminal_width))
+        print((visual_game_board[3:6] + visual_game_board[21:24] + visual_game_board[39:42] + visual_game_board[57:60] + visual_game_board[75:78] + visual_game_board[93:96] + visual_game_board[111:114]).center(self.terminal_width))
+        print((visual_game_board[6:9] + visual_game_board[24:27] + visual_game_board[42:45] + visual_game_board[60:63] + visual_game_board[78:81] + visual_game_board[96:99] + visual_game_board[114:117]).center(self.terminal_width))
+        print((visual_game_board[9:12] + visual_game_board[27:30] + visual_game_board[45:48] + visual_game_board[63:66] + visual_game_board[81:84] + visual_game_board[99:102] + visual_game_board[117:120]).center(self.terminal_width))
+        print((visual_game_board[12:15] + visual_game_board[30:33] + visual_game_board[48:51] + visual_game_board[66:69] + visual_game_board[84:87] + visual_game_board[102:105] + visual_game_board[120:123]).center(self.terminal_width))
+        print((visual_game_board[15:18] + visual_game_board[33:36] + visual_game_board[51:54] + visual_game_board[69:72] + visual_game_board[87:90] + visual_game_board[105:108] + visual_game_board[123:126]).center(self.terminal_width))
+        print('_____________________'.center(self.terminal_width))
+        print('|1||2||3||4||5||6||7|'.center(self.terminal_width))
         print('')
 
     def show_message(self, message):

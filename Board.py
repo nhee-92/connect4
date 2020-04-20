@@ -7,9 +7,6 @@ class Board:
         self.columns = columns
         self.board = numpy.zeros((rows, columns))
 
-    def get_board(self):
-        return self.board
-
     def get_next_open_row(self, column):
         for row in range(self.rows):
             if self.board[row][column] != 0:

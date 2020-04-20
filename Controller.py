@@ -10,6 +10,7 @@ from Board import Board
 from Player import Player
 from Ai import Ai
 from View import View
+from Colors import Colors
 
 class Controller:
     DEFAULT_ROW_COUNT = 6
@@ -29,22 +30,22 @@ class Controller:
         return Ai(id)
 
     def initialize_players(self, game_mode):
-        player_count = int(input('Wie viele wollen denn Zocken? '))
+        player_count = input('Wie viele wollen denn Zocken? ')
 
-        if type(player_count) is int:
-            self.turn = int(random.uniform(0, player_count +1))
+        if re.search('[0-9]', player_count):
+            self.turn = int(random.uniform(0, int(player_count) +1))
 
             #########################
             ### Player vs. Player ###
             if game_mode == 1:
-                for idx in range(player_count):
+                for idx in range(int(player_count)):
                     self.players.append(self.register_player(idx +1))
                 self.view.clear_console()
 
             ###########################
             ### Player vs. Computer ###
             if game_mode == 2:
-                for idx in range(player_count):
+                for idx in range(int(player_count)):
                     self.players.append(self.register_player(idx +1))
                 self.players.append(self.register_ai(idx +2))
                 self.view.clear_console()
@@ -52,15 +53,18 @@ class Controller:
             #############################
             ### Computer vs. Computer ###
             if game_mode == 3:
-                for idx in range(player_count):
+                for idx in range(int(player_count)):
                     self.players.append(self.register_ai(idx +1))
                 self.view.clear_console()
+        else:
+            self.view.show_message(f'{Colors.FAIL}Geben Sie eine ganze Zahl ein{Colors.ENDC}')
+            time.sleep(1)
+            self.start_application()
+
     
     def get_active_player(self):
         if self.current_player == None:
             self.current_player = self.players[self.turn-1].chip_id -1
-        else:
-            self.current_player = self.change_active_player().chip_id -1
 
     def change_active_player(self):
         players_length = len(self.players)
@@ -84,11 +88,8 @@ class Controller:
             self.view.clear_console()
             self.view.connect_four()
             self.view.enter_help()
-            self.view.show_board(self.game_board.get_board())
+            self.view.show_board(self.column_count, self.row_count, self.game_board, self.players)
             return True
-        else:
-            self.view.show_message('invalid move')
-            return False
 
     def add_chip(self, column, game_board, chip):
         if game_board.is_position_free_in_column(column):
@@ -170,9 +171,9 @@ class Controller:
         is_terminal = self.is_terminal_node(player)
 
         if is_terminal:
-            if game_board.winning_move(self.players[player].chip_id) and self.players[player].type == 'machine':
+            if game_board.winning_move(self.players[player].chip_id) and self.players[self.current_player].chip_id == self.players[player].chip_id:
                 return None, 100000000000
-            elif game_board.winning_move(self.players[player].chip_id) and self.players[player].type == 'human':
+            elif game_board.winning_move(self.players[player].chip_id) and self.players[self.current_player].chip_id != self.players[player].chip_id:
                 return None, -100000000000
             else:
                 return None, 0
@@ -227,7 +228,7 @@ class Controller:
         self.view.connect_four()
         self.view.enter_help()
         self.game_board = Board(self.row_count, self.column_count)
-        self.view.show_board(self.game_board.get_board())
+        self.view.show_board(self.column_count, self.row_count, self.game_board, self.players)
 
         while self.running_game:
             self.get_active_player()
@@ -238,12 +239,19 @@ class Controller:
 
             if type(player_input) is int and self.game_board.is_position_free_in_column(player_input -1):
                 self.handle_player_move(self.players[self.current_player], player_input -1)
+                self.current_player = self.change_active_player().chip_id -1
                 if self.game_board.winning_move(self.current_player +1):
                     self.view.winning_player(self.players[self.current_player])
                     time.sleep(3)
                     ##########################
                     ### reset current game ###
                     self.reset_game()
+            if player_input == 'b':
+                self.reset_game()
+            if player_input == 'n':
+                self.start_game(game_mode)
+            if player_input == 'e':
+                sys.exit()
 
     #################################
     ### This method runs the game ###
@@ -261,26 +269,26 @@ class Controller:
 
         ####################
         ### Game Options ###
-        if int(game_mode) == 4:
+        if game_mode == '4':
             self.view.clear_console()
             self.view.connect_four()
             self.view.options_screen()
 
-            option_input = int(input())
+            option_input = input()
 
-            if option_input == 1:
+            if option_input == '1':
                 self.view.clear_console()
                 self.view.connect_four()
                 self.view.option_change_gameboard(self.DEFAULT_ROW_COUNT, self.DEFAULT_COLUMN_COUNT)
                 self.row_count = int(input('Rows: '))
                 self.column_count = int(input('Columns: '))
             
-            if option_input == 2:
+            if option_input == '2':
                 self.start_application()
-
+            
         #################
         ### Exit Game ###
-        if int(game_mode) == 5:
+        if game_mode == '5':
             sys.exit()
 
         else:
