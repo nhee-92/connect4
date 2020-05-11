@@ -32,7 +32,7 @@ class Controller:
     def initialize_players(self, game_mode):
         player_count = input('Wie viele wollen denn Zocken? ')
 
-        if re.search('[0-9]', player_count):
+        if re.search('[0-9]', player_count) and len(player_count) == 1:
             self.turn = int(random.uniform(0, int(player_count) +1))
 
             #########################
@@ -79,7 +79,6 @@ class Controller:
             if idx == self.turn:
                 self.turn += 1
                 self.players[idx].active = True
-
                 return self.players[idx]
 
     def handle_player_move(self, player, column):
@@ -88,7 +87,7 @@ class Controller:
             self.view.clear_console()
             self.view.connect_four()
             self.view.enter_help()
-            self.view.show_board(self.column_count, self.row_count, self.game_board, self.players)
+            self.view.show_board(self.column_count, self.row_count, self.game_board)
             return True
 
     def add_chip(self, column, game_board, chip):
@@ -108,21 +107,24 @@ class Controller:
         score = 0
 
         if window.count(chip) == 4:
-            score += 1000
+            score += 100000
         elif window.count(chip) == 3 and window.count(0) == 1:
-            score += 200
-        elif window.count(chip) == 2 and window.count(0) == 2:
             score += 50
+        elif window.count(chip) == 2 and window.count(0) == 2:
+            score += 20
 
         for player in range(len(self.players)):
-            if self.players[player].type  != 'machine':
+            if self.players[player].chip_id  != self.players[self.current_player].chip_id:
+                if window.count(self.players[player].chip_id) == 4:
+                    score -= 10000
                 if window.count(self.players[player].chip_id) == 3 and window.count(0) == 1:
-                    score -= 800
-
+                    score -= 30
+                if window.count(self.players[player].chip_id) == 2 and window.count(0) == 0:
+                    score -= 10
         return score
 
     def score_position(self, game_board, chip):
-        score = -10000
+        score = 0
 
         ####################
         ### Score Center ###
@@ -172,9 +174,9 @@ class Controller:
 
         if is_terminal:
             if game_board.winning_move(self.players[player].chip_id) and self.players[self.current_player].chip_id == self.players[player].chip_id:
-                return None, 100000000000
+                return None, 1000000000000000
             elif game_board.winning_move(self.players[player].chip_id) and self.players[self.current_player].chip_id != self.players[player].chip_id:
-                return None, -100000000000
+                return None, -1000000000000000
             else:
                 return None, 0
 
@@ -201,18 +203,17 @@ class Controller:
                 if new_score > value:
                     value = new_score
                     best_column = column +1
-        # self.writeResultsToFile(best_column, value, self.players[player].chip_id) # uncomment output log.svg
-
+        # self.write_ai_column_pick_to_file(best_column, value, self.players[player].chip_id) # uncomment for output log.svg
         return best_column, value
     ### End KI Move ###
     ###################
 
     #################
     ### For Debug ###
-    def writeResultsToFile(self, column, score, player_id):
+    def write_ai_column_pick_to_file(self, column, score, player_id):
         with open('log.csv', 'a', newline='') as f:
-            writer = csv.writer(f, delimiter=";")
-            content = [player_id, column, score]
+            writer = csv.writer(f, delimiter=' ')
+            content = ['Player ID:', player_id, ' Chosed Column:', column, ' Score of that Column:',score]
             writer.writerow(content)
 
 
@@ -228,28 +229,30 @@ class Controller:
         self.view.connect_four()
         self.view.enter_help()
         self.game_board = Board(self.row_count, self.column_count)
-        self.view.show_board(self.column_count, self.row_count, self.game_board, self.players)
+        self.get_active_player()
+        self.view.show_board(self.column_count, self.row_count, self.game_board)
 
         while self.running_game:
-            self.get_active_player()
             if self.players[self.current_player].type == 'human':
                 player_input = self.view.player_input(self.players[self.current_player].name)
             elif self.players[self.current_player].type == 'machine':
+                #TODO start progress bar 
                 player_input = self.get_best_move_by_simulating(self.game_board, 4, self.current_player)[0]
-
+                #TODO Stop progress bar
             if type(player_input) is int and self.game_board.is_position_free_in_column(player_input -1):
                 self.handle_player_move(self.players[self.current_player], player_input -1)
-                self.current_player = self.change_active_player().chip_id -1
                 if self.game_board.winning_move(self.current_player +1):
                     self.view.winning_player(self.players[self.current_player])
                     time.sleep(3)
                     ##########################
                     ### reset current game ###
                     self.reset_game()
+                self.current_player = self.change_active_player().chip_id -1
+
+            ##############################
+            ### options from help menu ###
             if player_input == 'b':
                 self.reset_game()
-            if player_input == 'n':
-                self.start_game(game_mode)
             if player_input == 'e':
                 sys.exit()
 
@@ -282,6 +285,7 @@ class Controller:
                 self.view.option_change_gameboard(self.DEFAULT_ROW_COUNT, self.DEFAULT_COLUMN_COUNT)
                 self.row_count = int(input('Rows: '))
                 self.column_count = int(input('Columns: '))
+                self.start_application()
             
             if option_input == '2':
                 self.start_application()
@@ -292,5 +296,6 @@ class Controller:
             sys.exit()
 
         else:
-            print('wrong input')
+            self.view.show_message(f'{Colors.FAIL}Geben Sie eine ganze Zahl ein{Colors.ENDC}')
+            time.sleep(1)
             self.start_application()
