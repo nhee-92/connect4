@@ -117,7 +117,8 @@ class View:
                     row_string += '[X]'
                 elif board.board[row][column] == 2:
                     row_string += '[O]'
-
+                elif board.board[row][column] > 2:
+                    row_string += f'[{int(board.board[row][column])}]'
                 if row == 0:
                     column_index_string += '|' + str((column +1)) + '|'
             print(row_string.center(self.terminal_width))
